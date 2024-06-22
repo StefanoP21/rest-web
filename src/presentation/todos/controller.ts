@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 
 const todos = [
-  { id: 1, text: 'buy milk', createdAt: new Date() },
-  { id: 2, text: 'buy coffee', createdAt: null },
-  { id: 3, text: 'buy bread', createdAt: new Date() },
+  { id: 1, text: 'buy milk', completedAt: new Date() },
+  { id: 2, text: 'buy coffee', completedAt: null },
+  { id: 3, text: 'buy bread', completedAt: new Date() },
 ];
 
 export class TodoController {
@@ -52,7 +52,7 @@ export class TodoController {
     const newTodo = {
       id: todos.length + 1,
       text: text,
-      createdAt: null,
+      completedAt: null,
     };
 
     todos.push();
@@ -60,6 +60,39 @@ export class TodoController {
     return res.status(200).json({
       ok: true,
       todo: newTodo,
+    });
+  };
+
+  public updateTodo = (req: Request, res: Response) => {
+    const id = +req.params.id;
+
+    if (isNaN(id)) {
+      return res.status(400).json({
+        ok: false,
+        msg: 'Id argument is not a number',
+      });
+    }
+
+    const todo = todos.find((todo) => todo.id === id);
+
+    if (!todo) {
+      return res.status(404).json({
+        ok: false,
+        msg: `Todo with id ${id} not found`,
+      });
+    }
+
+    const { text, completedAt } = req.body;
+
+    todo.text = text || todo.text;
+
+    completedAt === 'null'
+      ? (todo.completedAt = null)
+      : (todo.completedAt = new Date(completedAt || todo.completedAt));
+
+    return res.status(200).json({
+      ok: true,
+      todo,
     });
   };
 }
