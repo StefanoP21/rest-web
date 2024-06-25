@@ -1,28 +1,36 @@
 import { Request, Response } from 'express';
 import { CreateTodoDto, UpdateTodoDto } from '../../domain/dtos';
-import { TodoRepository } from '../../domain';
+import {
+  CreateTodo,
+  DeleteTodo,
+  GetTodo,
+  GetTodos,
+  TodoRepository,
+  UpdateTodo,
+} from '../../domain';
 
 export class TodoController {
   //* DI
   constructor(private readonly todoRepository: TodoRepository) {}
 
-  public getTodos = async (req: Request, res: Response) => {
-    const todos = await this.todoRepository.getAll();
-
-    if (todos.length < 1) {
-      return res.status(404).json({
-        ok: false,
-        msg: 'Todos not found',
-      });
-    }
-
-    res.status(200).json({
-      ok: true,
-      todos,
-    });
+  public getTodos = (req: Request, res: Response) => {
+    new GetTodos(this.todoRepository)
+      .execute()
+      .then((todos) =>
+        res.status(200).json({
+          ok: true,
+          todos,
+        })
+      )
+      .catch((error) =>
+        res.status(404).json({
+          ok: false,
+          msg: error,
+        })
+      );
   };
 
-  public getTodoById = async (req: Request, res: Response) => {
+  public getTodoById = (req: Request, res: Response) => {
     const id = +req.params.id;
 
     if (isNaN(id)) {
@@ -32,22 +40,23 @@ export class TodoController {
       });
     }
 
-    try {
-      const todo = await this.todoRepository.findById(id);
-
-      res.status(200).json({
-        ok: true,
-        todo,
-      });
-    } catch (error) {
-      res.status(404).json({
-        ok: false,
-        msg: error,
-      });
-    }
+    new GetTodo(this.todoRepository)
+      .execute(id)
+      .then((todo) =>
+        res.status(200).json({
+          ok: true,
+          todo,
+        })
+      )
+      .catch((error) =>
+        res.status(404).json({
+          ok: false,
+          msg: error,
+        })
+      );
   };
 
-  public createTodo = async (req: Request, res: Response) => {
+  public createTodo = (req: Request, res: Response) => {
     const [error, createTodoDto] = CreateTodoDto.create(req.body);
 
     if (error) {
@@ -57,15 +66,23 @@ export class TodoController {
       });
     }
 
-    const newTodo = await this.todoRepository.create(createTodoDto!);
-
-    res.status(200).json({
-      ok: true,
-      newTodo,
-    });
+    new CreateTodo(this.todoRepository)
+      .execute(createTodoDto!)
+      .then((newTodo) =>
+        res.status(200).json({
+          ok: true,
+          newTodo,
+        })
+      )
+      .catch((error) =>
+        res.status(400).json({
+          ok: false,
+          msg: error,
+        })
+      );
   };
 
-  public updateTodo = async (req: Request, res: Response) => {
+  public updateTodo = (req: Request, res: Response) => {
     const id = +req.params.id;
     const [error, updatedTodoDto] = UpdateTodoDto.update({
       ...req.body,
@@ -79,22 +96,23 @@ export class TodoController {
       });
     }
 
-    try {
-      const updatedTodo = await this.todoRepository.updateById(updatedTodoDto!);
-
-      res.status(200).json({
-        ok: true,
-        updatedTodo,
-      });
-    } catch (error) {
-      res.status(404).json({
-        ok: false,
-        msg: error,
-      });
-    }
+    new UpdateTodo(this.todoRepository)
+      .execute(updatedTodoDto!)
+      .then((updatedTodo) =>
+        res.status(200).json({
+          ok: true,
+          updatedTodo,
+        })
+      )
+      .catch((error) =>
+        res.status(404).json({
+          ok: false,
+          msg: error,
+        })
+      );
   };
 
-  public deleteTodo = async (req: Request, res: Response) => {
+  public deleteTodo = (req: Request, res: Response) => {
     const id = +req.params.id;
 
     if (isNaN(id)) {
@@ -104,18 +122,19 @@ export class TodoController {
       });
     }
 
-    try {
-      const deletedTodo = await this.todoRepository.deleteById(id);
-
-      res.status(200).json({
-        ok: true,
-        todo: deletedTodo,
-      });
-    } catch (error) {
-      res.status(404).json({
-        ok: false,
-        msg: error,
-      });
-    }
+    new DeleteTodo(this.todoRepository)
+      .execute(id)
+      .then((deletedTodo) =>
+        res.status(200).json({
+          ok: true,
+          todo: deletedTodo,
+        })
+      )
+      .catch((error) =>
+        res.status(404).json({
+          ok: false,
+          msg: error,
+        })
+      );
   };
 }
