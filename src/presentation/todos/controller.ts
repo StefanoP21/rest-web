@@ -1,17 +1,33 @@
 import { Request, Response } from 'express';
-
-const todos = [
-  { id: 1, text: 'buy milk', completedAt: new Date() },
-  { id: 2, text: 'buy coffee', completedAt: null },
-  { id: 3, text: 'buy bread', completedAt: new Date() },
-];
+import { CreateTodoDto, UpdateTodoDto } from '../../domain/dtos';
+import {
+  CreateTodo,
+  DeleteTodo,
+  GetTodo,
+  GetTodos,
+  TodoRepository,
+  UpdateTodo,
+} from '../../domain';
 
 export class TodoController {
   //* DI
-  constructor() {}
+  constructor(private readonly todoRepository: TodoRepository) {}
 
   public getTodos = (req: Request, res: Response) => {
-    return res.json(todos);
+    new GetTodos(this.todoRepository)
+      .execute()
+      .then((todos) =>
+        res.status(200).json({
+          ok: true,
+          todos,
+        })
+      )
+      .catch((error) =>
+        res.status(404).json({
+          ok: false,
+          msg: error,
+        })
+      );
   };
 
   public getTodoById = (req: Request, res: Response) => {
@@ -24,76 +40,76 @@ export class TodoController {
       });
     }
 
-    const todo = todos.find((todo) => todo.id === id);
-
-    if (!todo) {
-      return res.status(404).json({
-        ok: false,
-        msg: `Todo with id ${id} not found`,
-      });
-    }
-
-    return res.status(200).json({
-      ok: true,
-      todo,
-    });
+    new GetTodo(this.todoRepository)
+      .execute(id)
+      .then((todo) =>
+        res.status(200).json({
+          ok: true,
+          todo,
+        })
+      )
+      .catch((error) =>
+        res.status(404).json({
+          ok: false,
+          msg: error,
+        })
+      );
   };
 
   public createTodo = (req: Request, res: Response) => {
-    const { text } = req.body;
+    const [error, createTodoDto] = CreateTodoDto.create(req.body);
 
-    if (!text) {
+    if (error) {
       return res.status(400).json({
         ok: false,
-        msg: 'Text property is required',
+        msg: error,
       });
     }
 
-    const newTodo = {
-      id: todos.length + 1,
-      text: text,
-      completedAt: null,
-    };
-
-    todos.push();
-
-    return res.status(200).json({
-      ok: true,
-      todo: newTodo,
-    });
+    new CreateTodo(this.todoRepository)
+      .execute(createTodoDto!)
+      .then((newTodo) =>
+        res.status(200).json({
+          ok: true,
+          newTodo,
+        })
+      )
+      .catch((error) =>
+        res.status(400).json({
+          ok: false,
+          msg: error,
+        })
+      );
   };
 
   public updateTodo = (req: Request, res: Response) => {
     const id = +req.params.id;
+    const [error, updatedTodoDto] = UpdateTodoDto.update({
+      ...req.body,
+      id,
+    });
 
-    if (isNaN(id)) {
+    if (error) {
       return res.status(400).json({
         ok: false,
-        msg: 'Id argument is not a number',
+        msg: error,
       });
     }
 
-    const todo = todos.find((todo) => todo.id === id);
-
-    if (!todo) {
-      return res.status(404).json({
-        ok: false,
-        msg: `Todo with id ${id} not found`,
-      });
-    }
-
-    const { text, completedAt } = req.body;
-
-    todo.text = text || todo.text;
-
-    completedAt === 'null'
-      ? (todo.completedAt = null)
-      : (todo.completedAt = new Date(completedAt || todo.completedAt));
-
-    return res.status(200).json({
-      ok: true,
-      todo,
-    });
+    new UpdateTodo(this.todoRepository)
+      .execute(updatedTodoDto!)
+      .then((updatedTodo) =>
+        res.status(200).json({
+          ok: true,
+          updatedTodo,
+        })
+      )
+      .catch((error) =>
+        res.status(404).json({
+          ok: false,
+          msg: error,
+        })
+      );
   };
 
   public deleteTodo = (req: Request, res: Response) => {
@@ -106,20 +122,19 @@ export class TodoController {
       });
     }
 
-    const todo = todos.find((todo) => todo.id === id);
-
-    if (!todo) {
-      return res.status(404).json({
-        ok: false,
-        msg: `Todo with id ${id} not found`,
-      });
-    }
-
-    todos.splice(todos.indexOf(todo), 1);
-
-    return res.status(200).json({
-      ok: true,
-      todo,
-    });
+    new DeleteTodo(this.todoRepository)
+      .execute(id)
+      .then((deletedTodo) =>
+        res.status(200).json({
+          ok: true,
+          todo: deletedTodo,
+        })
+      )
+      .catch((error) =>
+        res.status(404).json({
+          ok: false,
+          msg: error,
+        })
+      );
   };
 }
