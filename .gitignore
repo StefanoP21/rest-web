@@ -1,6 +1,16 @@
+# dependencies
 node_modules/
 keys/
+
+# db
 /postgres
+
+# build folder
 dist/
 
+# env files
 .env
+.env.test
+
+# test
+coverage/
