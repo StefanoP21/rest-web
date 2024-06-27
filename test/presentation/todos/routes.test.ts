@@ -26,6 +26,21 @@ describe('Testing routes.ts', () => {
 
     expect(body).toBeInstanceOf(Object);
     expect(body.todos.length).toBe(2);
+    expect(body).toEqual({
+      ok: true,
+      todos: [
+        {
+          id: expect.any(Number),
+          text: 'Todo test 1',
+          completedAt: null,
+        },
+        {
+          id: expect.any(Number),
+          text: 'Todo test 2',
+          completedAt: null,
+        },
+      ],
+    });
   });
 
   it('should return a todo - api/todos/:id', async () => {
@@ -55,10 +70,13 @@ describe('Testing routes.ts', () => {
       .send(todos[0])
       .expect(201);
 
-    expect(body.newTodo).toEqual({
-      id: expect.any(Number),
-      text: todos[0].text,
-      completedAt: null,
+    expect(body).toEqual({
+      ok: true,
+      newTodo: {
+        id: expect.any(Number),
+        text: todos[0].text,
+        completedAt: null,
+      },
     });
   });
 
@@ -78,5 +96,119 @@ describe('Testing routes.ts', () => {
       .expect(400);
 
     expect(body).toEqual({ ok: false, msg: 'Text property is required' });
+  });
+
+  it('should return an updated todo - api/todos/:id', async () => {
+    const todo = await prisma.todo.create({ data: todos[0] });
+
+    const { body } = await request(testServer.app)
+      .put(`/api/todos/${todo.id}`)
+      .send({ text: 'Updated text', completedAt: '2024-06-27' })
+      .expect(200);
+
+    expect(body).toEqual({
+      ok: true,
+      updatedTodo: {
+        id: expect.any(Number),
+        text: 'Updated text',
+        completedAt: '2024-06-27T00:00:00.000Z',
+      },
+    });
+  });
+
+  it('should return a 404 NOT FOUND - api/todos/:id', async () => {
+    const id = 99;
+
+    const { body } = await request(testServer.app)
+      .put(`/api/todos/${id}`)
+      .send({ text: 'Updated text', completedAt: '2024-06-27' })
+      .expect(404);
+
+    expect(body).toEqual({
+      ok: false,
+      msg: `Todo with id ${id} not found`,
+    });
+  });
+
+  it('should return a 400 BAD REQUEST - api/todos/:id', async () => {
+    const id = 'error-id';
+
+    const { body } = await request(testServer.app)
+      .put(`/api/todos/${id}`)
+      .send({ text: 'Updated text', completedAt: '2024-06-27' })
+      .expect(400);
+
+    expect(body).toEqual({
+      ok: false,
+      msg: 'Id argument must be a valid number',
+    });
+  });
+
+  it('should return a 400 BAD REQUEST - api/todos/:id', async () => {
+    const todo = await prisma.todo.create({ data: todos[0] });
+
+    const { body } = await request(testServer.app)
+      .put(`/api/todos/${todo.id}`)
+      .send({ completedAt: '20240627' })
+      .expect(400);
+
+    expect(body).toEqual({
+      ok: false,
+      msg: 'CompletedAt must be a valid date',
+    });
+  });
+
+  it('should return an updated todo with text - api/todos/:id', async () => {
+    const todo = await prisma.todo.create({ data: todos[0] });
+
+    const { body } = await request(testServer.app)
+      .put(`/api/todos/${todo.id}`)
+      .send({ text: 'Updated text' })
+      .expect(200);
+
+    expect(body).toEqual({
+      ok: true,
+      updatedTodo: {
+        id: todo.id,
+        text: 'Updated text',
+        completedAt: todo.completedAt,
+      },
+    });
+  });
+
+  it('should return an updated todo with date - api/todos/:id', async () => {
+    const todo = await prisma.todo.create({ data: todos[0] });
+
+    const { body } = await request(testServer.app)
+      .put(`/api/todos/${todo.id}`)
+      .send({ completedAt: '2024-06-27' })
+      .expect(200);
+
+    expect(body).toEqual({
+      ok: true,
+      updatedTodo: {
+        id: todo.id,
+        text: todo.text,
+        completedAt: '2024-06-27T00:00:00.000Z',
+      },
+    });
+  });
+
+  it('should return an updated todo with not changes - api/todos/:id', async () => {
+    const todo = await prisma.todo.create({ data: todos[0] });
+
+    const { body } = await request(testServer.app)
+      .put(`/api/todos/${todo.id}`)
+      .send({})
+      .expect(200);
+
+    expect(body).toEqual({
+      ok: true,
+      updatedTodo: {
+        id: todo.id,
+        text: todo.text,
+        completedAt: todo.completedAt,
+      },
+    });
   });
 });
