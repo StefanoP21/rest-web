@@ -69,7 +69,7 @@ export class TodoController {
     new CreateTodo(this.todoRepository)
       .execute(createTodoDto!)
       .then((newTodo) =>
-        res.status(200).json({
+        res.status(201).json({
           ok: true,
           newTodo,
         })
