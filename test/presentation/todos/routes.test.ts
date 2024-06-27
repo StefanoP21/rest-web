@@ -10,11 +10,14 @@ afterAll(async () => {
   testServer.close();
 });
 
+beforeEach(async () => {
+  await prisma.todo.deleteMany();
+});
+
 describe('Testing routes.ts', () => {
   const todos = [{ text: 'Todo test 1' }, { text: 'Todo test 2' }];
 
   it('should return todos api/todos', async () => {
-    await prisma.todo.deleteMany();
     await prisma.todo.createMany({ data: todos });
 
     const { body } = await request(testServer.app)
@@ -23,5 +26,16 @@ describe('Testing routes.ts', () => {
 
     expect(body).toBeInstanceOf(Object);
     expect(body.todos.length).toBe(2);
+  });
+
+  it('should return a todo api/todos/:id', async () => {
+    const todo = await prisma.todo.create({ data: todos[0] });
+
+    const { body } = await request(testServer.app)
+      .get(`/api/todos/${todo.id}`)
+      .expect(200);
+
+    expect(body).toBeInstanceOf(Object);
+    expect(body.todo.id).toEqual(todo.id);
   });
 });
