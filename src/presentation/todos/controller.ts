@@ -14,6 +14,20 @@ export class TodoController {
   //* DI
   constructor(private readonly todoRepository: TodoRepository) {}
 
+  private handleError = (res: Response, error: unknown) => {
+    if (error instanceof CustomError) {
+      return res.status(error.statusCode).json({
+        ok: false,
+        msg: error.message,
+      });
+    }
+
+    res.status(500).json({
+      ok: false,
+      msg: `Internal server error: ${error}`,
+    });
+  };
+
   public getTodos = (req: Request, res: Response) => {
     new GetTodos(this.todoRepository)
       .execute()
@@ -23,12 +37,7 @@ export class TodoController {
           todos,
         })
       )
-      .catch((error: CustomError) =>
-        res.status(error.statusCode).json({
-          ok: false,
-          msg: error.message,
-        })
-      );
+      .catch((error) => this.handleError(res, error));
   };
 
   public getTodoById = (req: Request, res: Response) => {
@@ -49,12 +58,7 @@ export class TodoController {
           todo,
         })
       )
-      .catch((error: CustomError) =>
-        res.status(error.statusCode).json({
-          ok: false,
-          msg: error.message,
-        })
-      );
+      .catch((error) => this.handleError(res, error));
   };
 
   public createTodo = (req: Request, res: Response) => {
@@ -105,12 +109,7 @@ export class TodoController {
           updatedTodo,
         })
       )
-      .catch((error: CustomError) =>
-        res.status(error.statusCode).json({
-          ok: false,
-          msg: error.message,
-        })
-      );
+      .catch((error) => this.handleError(res, error));
   };
 
   public deleteTodo = (req: Request, res: Response) => {
@@ -131,11 +130,6 @@ export class TodoController {
           deletedTodo,
         })
       )
-      .catch((error: CustomError) =>
-        res.status(error.statusCode).json({
-          ok: false,
-          msg: error.message,
-        })
-      );
+      .catch((error) => this.handleError(res, error));
   };
 }
