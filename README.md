@@ -1,4 +1,4 @@
-# Proyecto RestWeb
+# Proyecto RestWeb - Clean Architecture
 
 Aplicación RESTful para la gestión de tareas.
 
@@ -70,8 +70,6 @@ npm start
 
 - [TypeScript](https://www.typescriptlang.org/)
 - [Node.js](https://nodejs.org/)
-- [MongoDB](https://www.mongodb.com/)
-- [Mongoose ODM](https://mongoosejs.com/)
 - [PostgreSQL](https://www.postgresql.org/)
 - [Prisma](https://www.prisma.io/)
 - [Docker](https://www.docker.com/)
