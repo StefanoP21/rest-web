@@ -43,6 +43,17 @@ describe('Testing routes.ts', () => {
     });
   });
 
+  it('should return a 404 NOT FOUND - api/todos', async () => {
+    const { body } = await request(testServer.app)
+      .get('/api/todos')
+      .expect(404);
+
+    expect(body).toEqual({
+      ok: false,
+      msg: 'Todos not found on database',
+    });
+  });
+
   it('should return a todo - api/todos/:id', async () => {
     const todo = await prisma.todo.create({ data: todos[0] });
 
