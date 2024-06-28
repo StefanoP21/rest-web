@@ -127,7 +127,7 @@ export class TodoController {
       .then((deletedTodo) =>
         res.status(200).json({
           ok: true,
-          todo: deletedTodo,
+          deletedTodo,
         })
       )
       .catch((error) =>

@@ -211,4 +211,47 @@ describe('Testing routes.ts', () => {
       },
     });
   });
+
+  it('should return a deleted todo - api/todos/:id', async () => {
+    const todo = await prisma.todo.create({ data: todos[0] });
+
+    const { body } = await request(testServer.app)
+      .delete(`/api/todos/${todo.id}`)
+      .expect(200);
+
+    expect(body).toEqual({
+      ok: true,
+      deletedTodo: {
+        id: todo.id,
+        text: todo.text,
+        completedAt: null,
+      },
+    });
+  });
+
+  it('should return a 400 BAD REQUEST - api/todos/:id', async () => {
+    const id = 'error-id';
+
+    const { body } = await request(testServer.app)
+      .delete(`/api/todos/${id}`)
+      .expect(400);
+
+    expect(body).toEqual({
+      ok: false,
+      msg: 'Id argument is not a number',
+    });
+  });
+
+  it('should return a 404 NOT FOUND - api/todos/:id', async () => {
+    const id = 99;
+
+    const { body } = await request(testServer.app)
+      .delete(`/api/todos/${id}`)
+      .expect(404);
+
+    expect(body).toEqual({
+      ok: false,
+      msg: `Todo with id ${id} not found`,
+    });
+  });
 });
