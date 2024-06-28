@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { CreateTodoDto, UpdateTodoDto } from '../../domain/dtos';
 import {
   CreateTodo,
+  CustomError,
   DeleteTodo,
   GetTodo,
   GetTodos,
@@ -22,10 +23,10 @@ export class TodoController {
           todos,
         })
       )
-      .catch((error) =>
-        res.status(404).json({
+      .catch((error: CustomError) =>
+        res.status(error.statusCode).json({
           ok: false,
-          msg: error,
+          msg: error.message,
         })
       );
   };
@@ -48,10 +49,10 @@ export class TodoController {
           todo,
         })
       )
-      .catch((error) =>
-        res.status(404).json({
+      .catch((error: CustomError) =>
+        res.status(error.statusCode).json({
           ok: false,
-          msg: error,
+          msg: error.message,
         })
       );
   };
@@ -104,10 +105,10 @@ export class TodoController {
           updatedTodo,
         })
       )
-      .catch((error) =>
-        res.status(404).json({
+      .catch((error: CustomError) =>
+        res.status(error.statusCode).json({
           ok: false,
-          msg: error,
+          msg: error.message,
         })
       );
   };
@@ -130,10 +131,10 @@ export class TodoController {
           deletedTodo,
         })
       )
-      .catch((error) =>
-        res.status(404).json({
+      .catch((error: CustomError) =>
+        res.status(error.statusCode).json({
           ok: false,
-          msg: error,
+          msg: error.message,
         })
       );
   };
