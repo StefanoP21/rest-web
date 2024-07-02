@@ -34,7 +34,7 @@ export class Server {
     this.app.use(this.routes);
 
     //* SPA
-    this.app.get('*', (req, res) => {
+    this.app.get(/^\/(?!api).*/, (req, res) => {
       const indexPath = path.join(
         __dirname + `../../../${this.publicPath}/index.html`
       );
